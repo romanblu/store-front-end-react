@@ -1,0 +1,27 @@
+.page-title {
+  margin-top: 73px;
+  justify-content: center;
+  align-items: center;
+  display: flex;
+  h1 {
+    font-family: Roboto;
+    font-size: 28px;
+    font-weight: 500;
+    font-stretch: normal;
+    font-style: normal;
+    line-height: 1.11;
+    letter-spacing: 5.6px;
+    text-align: center;
+    color: #363636;
+  }
+
+  .rectangle {
+    width: 155px;
+    height: 45px;
+    background-color: #f9dfdf;
+    position: absolute;
+    z-index: -1;
+    // transform: translate(-50%, -50%);
+    transform: translateX(-50%);
+  }
+}

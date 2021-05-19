@@ -1,0 +1,21 @@
+.submit-button {
+  width: 100%;
+  height: 50px;
+  box-shadow: 0px 1px 3px 0 rgba(7, 7, 8, 0.46);
+  background-image: linear-gradient(to top, #31a893, #34ceb3);
+  cursor: pointer;
+  border: none;
+  font-family: Roboto;
+  font-size: 18px;
+  font-weight: bold;
+  font-stretch: normal;
+  font-style: normal;
+  line-height: 1.72;
+  letter-spacing: 0.45px;
+  color: #ffffff;
+}
+
+.light-gray {
+  opacity: 0.5;
+  color: #363636;
+}
