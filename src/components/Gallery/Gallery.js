@@ -4,7 +4,7 @@ export default function Gallery(props) {
 
     const [galleryImages, setGalleryImages] = useState({mainImage: null , secondaryImages:[]})
 
-    const {images, product} = props;
+    const {images} = props;
 
     useEffect(() => {
        setGalleryImages({
@@ -32,7 +32,6 @@ export default function Gallery(props) {
 
     }
 
-    console.log(galleryImages)
 
     if(galleryImages.mainImage != null){
         return (

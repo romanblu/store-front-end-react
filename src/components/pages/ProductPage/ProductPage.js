@@ -4,7 +4,7 @@ import './ProductPage.scss';
 import Dropdown from '../../Dropdown/Dropdown';
 import Gallery from '../../Gallery/Gallery';
 import '../../../utils.scss';
-import {getProduct, getImage, getProductImages} from '../../../api';
+import {getProduct, getImage, getProductImages, addToCart} from '../../../api';
 
 export default function ProductPage() {
     const [product, setProduct] = useState(null);
@@ -13,13 +13,13 @@ export default function ProductPage() {
     const [dropdowns, setDropdowns] = useState([]);
     const [variants, setVariants] = useState({ allVariants:[], refinedVariants:[], quantity: 1 });
     const [quantity, setQuantity] = useState(1);
+    const [chosenVariant, setChosenVariant] = useState(null);
 
     let {id } = useParams();
 
     useEffect(() => {
         setIsFetching(true);
         getProduct(id).then(prod => {
-            console.log(prod.data.data)
             setProduct(prod.data.data);
             setDropdownsAttributes(prod.data.data);
             setVariants({allVariants: prod.data.data.variants, refinedVariants: prod.data.data.variants});
@@ -53,11 +53,9 @@ export default function ProductPage() {
         let fit = true;
         variant.labels.forEach((label, i) =>{    
             const attributeForLabel = dropdowns.filter(attribute => attribute.id === label.attribute_id)
-            console.log(attributeForLabel[0], attributeForLabel[0].labelId, label.label_id);
 
             if((attributeForLabel[0].labelId !== label.label_id) ){
                 if(attributeForLabel[0].labelId){
-                    console.log(false);
                     fit = false;
                 }
             }
@@ -68,16 +66,35 @@ export default function ProductPage() {
 
     function refineVariants(){
         let refine = variants.allVariants.filter(variant => fitAttributes(variant));
-        setVariants({allVariants:variants.allVariants ,refineVariants:refine});
+        setVariants({allVariants:variants.allVariants ,refinedVariants:refine});
+        setDropdownsAttributes(product);
+        if(refine.length == 1){
+            console.log("LAST VARIANT ", refine[0])
+            setVariantAsProduct(refine[0]);
+        }
+
+    }
+
+    function setVariantAsProduct(variant){
+        getImage(variant.image.url).then(res => {
+            setChosenVariant({
+                image: res,
+                title: variant.title,
+                price: variant.price
+            })
+            
+        })
     }
 
     function setDropdownsAttributes(prod){
+
+        let attributesLabels = [];
+        variants.refinedVariants.map(variant => {
+            variant.labels.map(label => {
+                attributesLabels.push(label);
+            });
+        });
         
-
-        // loop over all refined variants and add label_id to the array where key is att_id 
-        // for every att_id set its dropdown 
-        // if refined_variants.length == 1, set it to the product  
-
         setDropdowns(prod.attributes.map(att => (
             {
                 id:att.id,
@@ -102,32 +119,79 @@ export default function ProductPage() {
         refineVariants();
     }
 
+    function getRefinedLabelsForAttribute(attribute){
+        let labels = []
+        variants.refinedVariants.map(variant => {
+            variant.labels.map(label => {
+                labels.push({attId: label.attribute_id, labelId: label.label_id});
+            })
+        })
+        return labels.filter(label => label.attId == attribute.id)                
+    }
+
+
+    function getAvailableLabels(attribute){
+        let labels = []
+        let refinedLabels = getRefinedLabelsForAttribute(attribute);
+        
+        
+        attribute.labels.map(label => {
+            let ab = refinedLabels.filter(refinedLabel => refinedLabel.labelId === label.id );
+            if(ab.length != 0){
+                labels.push(label)
+            }
+        });
+        return labels;
+    }
+
     const generateDropdownMenus = () => {
-        return product.attributes.map(att => (
-             <Dropdown value={att.title} onChange={changeDropdownValue}  id={`${att.id}`} title={att.title} labels={att.labels} ></Dropdown>
+        getAvailableLabels(product.attributes[0])
+        return product.attributes.map((att) => (
+             <Dropdown value={att.title} onChange={changeDropdownValue}  id={`${att.id}`} title={att.title} labels={getAvailableLabels(att)} ></Dropdown> 
         ))
     }
     
     let galleryView, productView, attributesView;
-    if(images.length != 0 ){
-        galleryView = <Gallery images={images} product={product}></Gallery>;
+    
+    if(chosenVariant){
+        console.log("UPDATED GALLERY FOR CHOSEN VARIANT")
+        galleryView = <Gallery images={chosenVariant.image} ></Gallery>;
+    } else if(images.length !== 0 ){
+        galleryView = <Gallery images={images} ></Gallery>;
     }
 
     if(product != null ){
+        let title, price, description;
+        title = product.title;
+        price = getProductPrice();
+        description = product.description;
+
+        if(chosenVariant){
+            title = chosenVariant.title
+            description = "";
+            price = `$${chosenVariant.price * quantity}`;
+        }
         productView = (
             <div className="product-content">
-                <h1 className="product-title">{product.title}</h1>
-                <p className="product-price">{getProductPrice()}</p>
-                <p className="product-description">{product.description}</p>
+                <h1 className="product-title">{title}</h1>
+                <p className="product-price">{price}</p>
+                <p className="product-description">{description}</p>
             </div>
         );
 
         attributesView = generateDropdownMenus();
     }
 
-    function addToCart(){
-        console.log(product);
-
+    function addItemToCart(){
+        console.log(product)
+        if(variants.refinedVariants.length === 1){
+            console.log(product)
+            const variant = variants.refinedVariants[0];
+            addToCart(variant.id, quantity);
+            const productAddedMessage = quantity === 1 ? `${variant.title} Added To Cart For Total of $${variant.price}` 
+            : `${variant.title} x ${quantity} Added To Cart For Total of $${variant.price * quantity}` ;
+            alert(productAddedMessage );
+        }
     }
 
     function addItem(){
@@ -137,16 +201,15 @@ export default function ProductPage() {
 
     function subItem(){
         if(quantity > 0){
-            setQuantity(quantity - 1)
+            setQuantity(quantity - 1) 
 
         }
     }
 
-    console.log("Quantity ",quantity);
     return (
         <div className="container">
             <div className="product-page">
-
+              
                 {galleryView}
                 
                 {productView}
@@ -163,7 +226,7 @@ export default function ProductPage() {
                             <button onClick={addItem} className="quantity-button">+</button>
                         </div>
                     </div>
-                    <button onClick={addToCart} className="submit-button">Add To Cart</button>
+                    <button onClick={addItemToCart} className="submit-button">Add To Cart</button>
                 </div>
             </div>
         </div>

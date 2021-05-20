@@ -16,8 +16,6 @@ export default function ProductListing(props) {
        
     }, [])
 
-    let history = useHistory();
-
     function redirectToProductPage(){
         setRedirect(true);
     }

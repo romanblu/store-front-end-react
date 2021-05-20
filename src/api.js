@@ -28,4 +28,4 @@ function addToCart(variant_id, quantity){
     return axios.get(`https://fedtest.monolith.co.il/api/cart/add?variant_id=${variant_id}&quantity=${quantity}`);
 }
 
-export {getAll, getProduct, getImage, getProductImages};
+export {getAll, getProduct, getImage, getProductImages, addToCart};
