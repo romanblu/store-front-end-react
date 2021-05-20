@@ -69,7 +69,6 @@ export default function ProductPage() {
         setVariants({allVariants:variants.allVariants ,refinedVariants:refine});
         setDropdownsAttributes(product);
         if(refine.length == 1){
-            console.log("LAST VARIANT ", refine[0])
             setVariantAsProduct(refine[0]);
         }
 
@@ -154,7 +153,7 @@ export default function ProductPage() {
     let galleryView, productView, attributesView;
     
     if(chosenVariant){
-        console.log("UPDATED GALLERY FOR CHOSEN VARIANT")
+        
         galleryView = <Gallery images={chosenVariant.image} ></Gallery>;
     } else if(images.length !== 0 ){
         galleryView = <Gallery images={images} ></Gallery>;
@@ -183,9 +182,7 @@ export default function ProductPage() {
     }
 
     function addItemToCart(){
-        console.log(product)
         if(variants.refinedVariants.length === 1){
-            console.log(product)
             const variant = variants.refinedVariants[0];
             addToCart(variant.id, quantity);
             const productAddedMessage = quantity === 1 ? `${variant.title} Added To Cart For Total of $${variant.price}` 
